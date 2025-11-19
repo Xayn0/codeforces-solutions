@@ -1,21 +1,21 @@
 import os
 import glob
-import requests
+import urllib.request
 import json
 
 def get_codeforces_rating(handle):
-    """Fetch current rating from Codeforces API"""
+    """Fetch current rating from Codeforces API using urllib (no extra modules needed)"""
     try:
         url = f"https://codeforces.com/api/user.info?handles={handle}"
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        
-        if data['status'] == 'OK' and data['result']:
-            user_info = data['result'][0]
-            rating = user_info.get('rating', 'Unrated')
-            max_rating = user_info.get('maxRating', 'Unrated')
-            rank = user_info.get('rank', 'Unrated')
-            return rating, max_rating, rank
+        with urllib.request.urlopen(url, timeout=10) as response:
+            data = json.loads(response.read().decode())
+            
+            if data['status'] == 'OK' and data['result']:
+                user_info = data['result'][0]
+                rating = user_info.get('rating', 'Unrated')
+                max_rating = user_info.get('maxRating', 'Unrated')
+                rank = user_info.get('rank', 'Unrated')
+                return rating, max_rating, rank
     except:
         pass
     return 'Unrated', 'Unrated', 'Unrated'
@@ -122,7 +122,7 @@ def update_readme(progress, total, avg_rating, cf_rating, cf_max_rating, cf_rank
 
 {detailed_table}
 
-*Updated automatically with GitHub Actions*
+*Updated automatically*
 """
     
     with open('README.md', 'w', encoding='utf-8') as f:
