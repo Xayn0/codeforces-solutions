@@ -6,19 +6,26 @@ import json
 def get_codeforces_rating(handle):
     """Fetch current rating from Codeforces API"""
     try:
+        print(f"🔍 Fetching Codeforces rating for {handle}...")
         url = f"https://codeforces.com/api/user.info?handles={handle}"
         response = requests.get(url, timeout=10)
+        print(f"📡 API Response status: {response.status_code}")
+        
         data = response.json()
+        print(f"📊 API Data: {json.dumps(data, indent=2)}")
         
         if data['status'] == 'OK' and data['result']:
             user_info = data['result'][0]
             rating = user_info.get('rating', 'Unrated')
             max_rating = user_info.get('maxRating', 'Unrated')
             rank = user_info.get('rank', 'Unrated')
+            print(f"✅ Found rating: {rating}, max: {max_rating}, rank: {rank}")
             return rating, max_rating, rank
         else:
+            print("❌ API returned error status")
             return 'Unrated', 'Unrated', 'Unrated'
-    except:
+    except Exception as e:
+        print(f"❌ Error fetching rating: {e}")
         return 'Unrated', 'Unrated', 'Unrated'
 
 def count_solutions():
@@ -77,8 +84,10 @@ def count_solutions():
         if data['total'] > 0:
             total_weighted += int(rating) * data['total']
             total_problems_for_avg += data['total']
+            print(f"📈 Rating {rating}: {data['total']} problems -> weight: {int(rating) * data['total']}")
     
     avg_rating = round(total_weighted / total_problems_for_avg) if total_problems_for_avg > 0 else 0
+    print(f"🧮 Average rating calculation: {total_weighted} / {total_problems_for_avg} = {avg_rating}")
     
     return progress, total_all, cpp_total, py_total, avg_rating
 
@@ -104,24 +113,23 @@ def update_readme(progress, total, cpp_count, py_count, avg_rating, cf_rating, c
     solved_ratings = len([data for data in progress.values() if data['total'] > 0])
     total_possible_ratings = len(progress)
     
-    # Codeforces rating badge
-    rating_color = "red"
+    # Codeforces rating section
+    cf_section = ""
     if cf_rating != 'Unrated':
-        rating_num = int(cf_rating)
-        if rating_num < 1200:
-            rating_color = "gray"
-        elif rating_num < 1400:
-            rating_color = "green"
-        elif rating_num < 1600:
-            rating_color = "cyan"
-        elif rating_num < 1900:
-            rating_color = "blue"
-        elif rating_num < 2100:
-            rating_color = "violet"
-        elif rating_num < 2400:
-            rating_color = "orange"
-        else:
-            rating_color = "red"
+        cf_section = f"""
+## 🏆 Codeforces Profile
+
+- **Handle**: [thehandsomeone](https://codeforces.com/profile/thehandsomeone)
+- **Current Rating**: {cf_rating} ({cf_rank})
+- **Max Rating**: {cf_max_rating}
+"""
+    else:
+        cf_section = """
+## 🏆 Codeforces Profile
+
+- **Handle**: [thehandsomeone](https://codeforces.com/profile/thehandsomeone)
+- **Status**: Rating not available
+"""
     
     readme_content = f"""# 🚀 Codeforces Solutions
 
@@ -129,42 +137,38 @@ def update_readme(progress, total, cpp_count, py_count, avg_rating, cf_rating, c
 ![C++](https://img.shields.io/badge/C++-{cpp_count}-blue) 
 ![Python](https://img.shields.io/badge/Python-{py_count}-yellow)
 ![Avg Rating](https://img.shields.io/badge/Average_Rating-{avg_rating}-orange)
-![CF Rating](https://img.shields.io/badge/Codeforces-{cf_rating}-{rating_color})
 
 ## 🎯 Quick Stats
 - **Total Problems Solved**: {total}
 - **Average Problem Rating**: {avg_rating}
 - **Rating Coverage**: {solved_ratings}/{total_possible_ratings} ratings
-- **Codeforces Handle**: [thehandsomeone](https://codeforces.com/profile/thehandsomeone)
-- **Current Rating**: {cf_rating} ({cf_rank})
-- **Max Rating**: {cf_max_rating}
+
+{cf_section}
 
 {detailed_table}
 
-*Updated automatically - Live rating from Codeforces API*
+*Updated automatically*
 """
     
     with open('README.md', 'w', encoding='utf-8') as f:
         f.write(readme_content)
     
-    # Debug print
-    print(f"DEBUG: Found {total} total problems, average rating: {avg_rating}")
-    print(f"DEBUG: Codeforces rating: {cf_rating} (Max: {cf_max_rating}, Rank: {cf_rank})")
-    for rating in sorted(progress.keys(), key=int):
-        data = progress[rating]
-        if data['total'] > 0:
-            print(f"  Rating {rating}: {data['total']} problems ({data['cpp']} C++, {data['python']} Python)")
+    print(f"✅ README updated with:")
+    print(f"   - {total} problems solved")
+    print(f"   - Average rating: {avg_rating}")
+    print(f"   - Codeforces rating: {cf_rating}")
 
 def main():
     if not os.path.exists('problems'):
         os.makedirs('problems')
     
     # Get Codeforces rating
+    print("🚀 Starting update process...")
     cf_rating, cf_max_rating, cf_rank = get_codeforces_rating('thehandsomeone')
     
     progress, total, cpp_count, py_count, avg_rating = count_solutions()
     update_readme(progress, total, cpp_count, py_count, avg_rating, cf_rating, cf_max_rating, cf_rank)
-    print(f"✅ Updated README - {total} problems solved, Average rating: {avg_rating}")
+    print(f"🎉 Update complete!")
 
 if __name__ == "__main__":
     main()
