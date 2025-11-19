@@ -8,10 +8,6 @@ def count_solutions():
     progress = {}
     rating_counts = {}
     
-    # Initialize all ratings to 0
-    for rating in ratings:
-        rating_counts[rating] = 0
-    
     # Count solutions for each rating
     for rating in ratings:
         cpp_files = glob.glob(f'problems/{rating}/*.cpp')
@@ -20,12 +16,12 @@ def count_solutions():
         
         rating_counts[rating] = total
         
-        if total > 0:
-            progress[rating] = {
-                'total': total,
-                'cpp': len(cpp_files),
-                'python': len(py_files)
-            }
+        # Always add to progress, even if 0
+        progress[rating] = {
+            'total': total,
+            'cpp': len(cpp_files),
+            'python': len(py_files)
+        }
     
     # Total counts
     all_cpp = glob.glob('problems/**/*.cpp', recursive=True)
@@ -35,27 +31,13 @@ def count_solutions():
     return progress, total_all, len(all_cpp), len(all_py), rating_counts
 
 def update_readme(progress, total, cpp_count, py_count, rating_counts):
-    # Create progress bar for each rating
-    progress_bars = ""
-    max_problems = max(rating_counts.values()) if rating_counts.values() else 1
-    
-    for rating in sorted(rating_counts.keys(), key=int):
-        count = rating_counts[rating]
-        if max_problems > 0:
-            percentage = (count / max_problems) * 100
-            bars = "█" * int(percentage / 10) + "░" * (10 - int(percentage / 10))
-        else:
-            bars = "░░░░░░░░░░"
-        
-        progress_bars += f"**{rating}**: {bars} {count} problems\n"
-    
     # Create rating distribution table
     distribution_table = "## 📈 Rating Distribution\n\n"
     distribution_table += "| Rating | Problems Solved | Progress |\n"
     distribution_table += "|--------|----------------|----------|\n"
     
-    for rating in sorted(rating_counts.keys(), key=int):
-        count = rating_counts[rating]
+    for rating in sorted(progress.keys(), key=int):
+        count = progress[rating]['total']
         progress_bar = "█" * min(count, 10) + "░" * (10 - min(count, 10))
         distribution_table += f"| {rating} | {count} | {progress_bar} |\n"
     
@@ -74,7 +56,10 @@ def update_readme(progress, total, cpp_count, py_count, rating_counts):
     # Calculate some stats
     solved_ratings = len([count for count in rating_counts.values() if count > 0])
     total_possible_ratings = len(rating_counts)
-    coverage_percentage = (solved_ratings / total_possible_ratings) * 100
+    coverage_percentage = (solved_ratings / total_possible_ratings) * 100 if total_possible_ratings > 0 else 0
+    
+    most_solved_rating = max(rating_counts, key=rating_counts.get) if rating_counts.values() and max(rating_counts.values()) > 0 else 'N/A'
+    most_solved_count = max(rating_counts.values()) if rating_counts.values() and max(rating_counts.values()) > 0 else 0
     
     readme_content = f"""# 🚀 Codeforces Solutions
 
@@ -86,30 +71,21 @@ def update_readme(progress, total, cpp_count, py_count, rating_counts):
 ## 🎯 Quick Stats
 - **Total Problems Solved**: {total}
 - **Rating Coverage**: {solved_ratings}/{total_possible_ratings} ({coverage_percentage:.1f}%)
-- **Most Solved Rating**: {max(rating_counts, key=rating_counts.get) if rating_counts.values() else 'N/A'} ({max(rating_counts.values()) if rating_counts.values() else 0} problems)
+- **Most Solved Rating**: {most_solved_rating} ({most_solved_count} problems)
 - **Languages**: C++ ({cpp_count}), Python ({py_count})
 
 {distribution_table}
 
 {detailed_table}
 
-## 📁 Folder Structure
-codeforces-solutions/
-├── problems/
-│ ├── 800/ - {rating_counts['800']} problems
-│ ├── 900/ - {rating_counts['900']} problems
-│ ├── 1000/ - {rating_counts['1000']} problems
-│ ├── 1100/ - {rating_counts['1100']} problems
-│ ├── 1200/ - {rating_counts['1200']} problems
-│ └── .../
-├── scripts/ - Automation scripts
-└── README.md - Auto-generated
 
 *Updated automatically - Keep coding! 🚀*
 """
     
     with open('README.md', 'w', encoding='utf-8') as f:
         f.write(readme_content)
+    
+    print(f"DEBUG: 800 rating has {progress['800']['total']} problems (C++: {progress['800']['cpp']}, Python: {progress['800']['python']})")
 
 def main():
     if not os.path.exists('problems'):
