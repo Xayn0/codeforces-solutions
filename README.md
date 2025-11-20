@@ -1,14 +1,14 @@
 # 🚀 Codeforces Solutions
 
-![Progress](https://img.shields.io/badge/Solved-2-brightgreen)
+![Progress](https://img.shields.io/badge/Solved-1-brightgreen)
 ![C++](https://img.shields.io/badge/Language-C++-blue)
-![Avg Rating](https://img.shields.io/badge/Average_Rating-900-orange)
+![Avg Rating](https://img.shields.io/badge/Average_Rating-1000-orange)
 
 ## 📈 Progress Overview
 
-- **Total Problems Solved**: 2
-- **Average Problem Rating**: 900
-- **Active Rating Ranges**: 2/13
+- **Total Problems Solved**: 1
+- **Average Problem Rating**: 1000
+- **Active Rating Ranges**: 1/13
 
 
 ## 🏆 Codeforces Profile
@@ -22,9 +22,8 @@
 
 | Rating | Problems Solved |
 |--------|----------------|
-| 800 | 1 |
 | 1000 | 1 |
-| **Total** | **2** |
+| **Total** | **1** |
 
 
 
